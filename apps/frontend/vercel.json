@@ -1,0 +1,22 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install --no-audit --no-fund",
+  "outputDirectory": ".next",
+  "devCommand": "next dev",
+  
+  "functions": {
+    "app/api/auth/[...auth]/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/tasks/[taskId]/route.ts": {
+      "maxDuration": 60
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "name": "shadow-monorepo",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --filter=!sidecar",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types",
+    "db:migrate:deploy": "turbo run db:migrate:deploy",
+    "db:migrate:dev": "turbo run db:migrate:dev",
+    "db:push": "turbo run db:push",
+    "db:push:reset": "turbo run db:push:reset",
+    "db:studio": "turbo run db:studio",
+    "db:dev:push": "./scripts/db-dev.sh db push",
+    "db:dev:studio": "./scripts/db-dev.sh studio",
+    "db:dev:migrate": "./scripts/db-dev.sh migrate dev",
+    "db:dev:migrate:reset": "./scripts/db-dev.sh migrate reset --force",
+    "db:prod:push": "./scripts/db-prod.sh db push",
+    "db:prod:studio": "./scripts/db-prod.sh studio",
+    "db:prod:migrate": "./scripts/db-prod.sh migrate deploy",
+    "db:prod:reset": "./scripts/db-prod.sh migrate reset --force",
+    "db:prod:reset:push": "./scripts/db-prod.sh db push --force-reset",
+    "db:prod:migrate:status": "./scripts/db-prod.sh migrate status",
+    "db:prod:migrate:resolve": "./scripts/db-prod.sh migrate resolve",
+    "db:prod:migrate:diff": "./scripts/db-prod.sh migrate diff",
+    "generate": "turbo run generate",
+    "prebuild": "npm run generate",
+    "start:railway": "cd apps/server && npm start",
+    "start:production": "concurrently \"cd apps/server && npm start\" \"cd apps/sidecar && npm start\""
+  },
+  "prisma": {
+    "schema": "packages/db/prisma/schema.prisma"
+  },
+  "devDependencies": {
+    "@next/swc-wasm-nodejs": "^15.4.6",
+    "prettier": "^3.6.2",
+    "turbo": "^2.5.4",
+    "typescript": "5.8.3"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "npm@10.9.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}

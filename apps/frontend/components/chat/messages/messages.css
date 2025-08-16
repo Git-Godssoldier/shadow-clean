@@ -1,0 +1,106 @@
+.user-message-border {
+  background: linear-gradient(var(--border), var(--border), var(--highlight));
+}
+
+.user-message-shadow {
+  /* box-shadow:
+    0 10px 15px -3px rgba(64, 64, 64, 0.1),
+    0 4px 6px -4px rgba(64, 64, 64, 0.1); */
+
+  --highlight-shadow:
+    0 10px 15px -3px oklch(0.3715 0 0 / 0.1),
+    0 4px 6px -4px oklch(0.3715 0 0 / 0.1), 0 15px 25px 15px oklch(0.1957 0 0);
+
+  box-shadow:
+    var(--tw-inset-shadow), var(--tw-inset-ring-shadow),
+    var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow),
+    var(--highlight-shadow);
+}
+
+.user-message-shadow:hover {
+  --highlight-shadow:
+    0 10px 15px -3px oklch(0.3715 0 0 / 0.25),
+    0 4px 6px -4px oklch(0.3715 0 0 / 0.25), 0 15px 25px 15px oklch(0.1957 0 0);
+}
+
+.new-task-pulse {
+  background: conic-gradient(
+    from 0deg,
+    #eeeeee00 0%,
+    #eeeeee00 40%,
+    #eeeeee 50%,
+    #eeeeee00 60%,
+    #eeeeee00 100%
+  );
+  opacity: 0;
+  animation-delay: 0.1s;
+  animation-duration: 1.2s;
+  animation-timing-function: var(--ease-out-quad);
+  animation-fill-mode: forwards;
+}
+
+.rotate-left {
+  animation-name: rotate-left;
+}
+
+.rotate-right {
+  animation-name: rotate-right;
+}
+
+@keyframes rotate-left {
+  0% {
+    transform: rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.1;
+  }
+  40% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: rotate(180deg);
+    opacity: 0;
+  }
+}
+
+@keyframes rotate-right {
+  0% {
+    transform: rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.1;
+  }
+  40% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: rotate(-180deg);
+    opacity: 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    #737373 25%,
+    var(--foreground) 50%,
+    #737373 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+  animation-timing-function: linear;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
