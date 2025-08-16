@@ -1,0 +1,339 @@
+# Production Docker Compose for Temporal Integration
+# Includes Temporal Server, Workers, Clients, and supporting services
+
+version: '3.8'
+
+services:
+  # ========================================================================
+  # Temporal Server
+  # ========================================================================
+  temporal-server:
+    image: temporalio/auto-setup:1.25.0
+    container_name: temporal-server
+    depends_on:
+      - postgres
+      - elasticsearch
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_SEEDS=postgres
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
+      - ENABLE_ES=true
+      - ES_SEEDS=elasticsearch
+      - ES_VERSION=v7
+    ports:
+      - "7233:7233"
+    volumes:
+      - ./config/temporal:/etc/temporal/config/dynamicconfig
+    networks:
+      - temporal-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "tctl", "--address", "temporal-server:7233", "workflow", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ========================================================================
+  # Temporal Web UI
+  # ========================================================================
+  temporal-web:
+    image: temporalio/ui:2.31.0
+    container_name: temporal-web
+    depends_on:
+      - temporal-server
+    environment:
+      - TEMPORAL_ADDRESS=temporal-server:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    ports:
+      - "8080:8080"
+    networks:
+      - temporal-network
+    restart: unless-stopped
+
+  # ========================================================================
+  # Database
+  # ========================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: temporal-postgres
+    environment:
+      POSTGRES_DB: temporal
+      POSTGRES_USER: temporal
+      POSTGRES_PASSWORD: temporal
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - temporal-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U temporal"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ========================================================================
+  # Elasticsearch for Visibility
+  # ========================================================================
+  elasticsearch:
+    image: elasticsearch:7.17.24
+    container_name: temporal-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms256m -Xmx512m"
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - temporal-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ========================================================================
+  # Redis for Caching
+  # ========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: temporal-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - temporal-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ========================================================================
+  # Temporal Workers
+  # ========================================================================
+  temporal-worker-1:
+    build:
+      context: ../../
+      dockerfile: deployments/docker/Dockerfile.worker
+    container_name: temporal-worker-1
+    depends_on:
+      temporal-server:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - TEMPORAL_ADDRESS=temporal-server:7233
+      - TEMPORAL_NAMESPACE=default
+      - TEMPORAL_TASK_QUEUE=production-task-queue
+      - WORKER_ID=worker-1
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://temporal:temporal@postgres:5432/temporal
+      - LOG_LEVEL=info
+      - METRICS_PORT=3000
+      - ENABLE_PERFORMANCE_OPTIMIZATION=true
+      - ENABLE_MONITORING=true
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./config/workers:/app/config
+      - worker_logs:/app/logs
+    networks:
+      - temporal-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+
+  temporal-worker-2:
+    build:
+      context: ../../
+      dockerfile: deployments/docker/Dockerfile.worker
+    container_name: temporal-worker-2
+    depends_on:
+      temporal-server:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - TEMPORAL_ADDRESS=temporal-server:7233
+      - TEMPORAL_NAMESPACE=default
+      - TEMPORAL_TASK_QUEUE=production-task-queue
+      - WORKER_ID=worker-2
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://temporal:temporal@postgres:5432/temporal
+      - LOG_LEVEL=info
+      - METRICS_PORT=3000
+      - ENABLE_PERFORMANCE_OPTIMIZATION=true
+      - ENABLE_MONITORING=true
+    ports:
+      - "3002:3000"
+    volumes:
+      - ./config/workers:/app/config
+      - worker_logs:/app/logs
+    networks:
+      - temporal-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+
+  # ========================================================================
+  # Client Service
+  # ========================================================================
+  temporal-client:
+    build:
+      context: ../../
+      dockerfile: deployments/docker/Dockerfile.client
+    container_name: temporal-client
+    depends_on:
+      temporal-server:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - TEMPORAL_ADDRESS=temporal-server:7233
+      - TEMPORAL_NAMESPACE=default
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://temporal:temporal@postgres:5432/temporal
+      - LOG_LEVEL=info
+      - PORT=8080
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./config/client:/app/config
+      - client_logs:/app/logs
+    networks:
+      - temporal-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ========================================================================
+  # Monitoring - Prometheus
+  # ========================================================================
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: temporal-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - temporal-network
+    restart: unless-stopped
+
+  # ========================================================================
+  # Monitoring - Grafana
+  # ========================================================================
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: temporal-grafana
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - temporal-network
+    restart: unless-stopped
+
+  # ========================================================================
+  # Monitoring - Node Exporter
+  # ========================================================================
+  node-exporter:
+    image: prom/node-exporter:v1.6.0
+    container_name: temporal-node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - temporal-network
+    restart: unless-stopped
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  temporal-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  postgres_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  worker_logs:
+    driver: local
+  client_logs:
+    driver: local
