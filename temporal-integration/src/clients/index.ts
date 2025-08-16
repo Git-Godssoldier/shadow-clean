@@ -10,7 +10,7 @@ import {
   WorkflowHandle,
   WorkflowStartOptions
 } from '@temporalio/client';
-import { OpenTelemetryWorkflowClientInterceptor } from '@temporalio/interceptors-opentelemetry';
+// Note: OpenTelemetry interceptor can be added when package is available
 
 import { 
   ClientConfig, 

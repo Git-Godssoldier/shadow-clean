@@ -21,7 +21,7 @@ module.exports = {
     'html'
   ],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@workflows/(.*)$': '<rootDir>/src/workflows/$1',
     '^@activities/(.*)$': '<rootDir>/src/activities/$1',

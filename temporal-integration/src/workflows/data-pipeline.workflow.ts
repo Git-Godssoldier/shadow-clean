@@ -11,9 +11,9 @@ import {
   condition,
   sleep,
   workflowInfo,
-  ApplicationFailure,
   isCancellation
 } from '@temporalio/workflow';
+import { ApplicationFailure } from '@temporalio/common';
 import type * as activities from '../activities/data-pipeline.activities';
 
 // Proxy activities with retry configuration
