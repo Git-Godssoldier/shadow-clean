@@ -323,9 +323,7 @@ export type {
   WorkflowHandle,
   WorkflowExecution,
   WorkflowExecutionInfo,
-  ActivityOptions,
   WorkflowOptions,
-  ChildWorkflowOptions,
   RetryPolicy,
   ScheduleOverlapPolicy,
   QueryDefinition as TemporalQueryDefinition,
@@ -349,9 +347,64 @@ export type {
 } from '@temporalio/activity';
 
 export type {
-  Condition,
   CancellationScope,
   ChildWorkflowCancellationType,
   ParentClosePolicy,
   ContinueAsNewOptions
 } from '@temporalio/workflow';
+
+// ============================================================================
+// Missing Type Definitions
+// ============================================================================
+
+// Activity Options (custom definition since not exported from client)
+export interface ActivityOptions {
+  startToCloseTimeout?: string;
+  scheduleToStartTimeout?: string;
+  scheduleToCloseTimeout?: string;
+  heartbeatTimeout?: string;
+  retry?: RetryPolicy;
+  taskQueue?: string;
+}
+
+// Child Workflow Options (custom definition)
+export interface ChildWorkflowOptions {
+  workflowId?: string;
+  taskQueue?: string;
+  workflowExecutionTimeout?: string;
+  workflowRunTimeout?: string;
+  workflowTaskTimeout?: string;
+  retry?: RetryPolicy;
+  parentClosePolicy?: ParentClosePolicy;
+  cancellationType?: ChildWorkflowCancellationType;
+  memo?: Record<string, unknown>;
+  searchAttributes?: Record<string, unknown>;
+}
+
+// Scheduled Workflow Config
+export interface ScheduledWorkflowConfig {
+  schedule: string; // cron expression
+  workflowType: string;
+  args: unknown[];
+  options?: WorkflowOptions;
+  timezone?: string;
+  jitter?: string;
+  notes?: string;
+}
+
+// Timer Event
+export interface TimerEvent {
+  id: string;
+  duration: string;
+  payload?: unknown;
+  metadata?: Record<string, string>;
+}
+
+// Recurring Task Config
+export interface RecurringTaskConfig {
+  interval: string;
+  taskType: string;
+  payload: unknown;
+  retryPolicy?: RetryPolicy;
+  enabled: boolean;
+}

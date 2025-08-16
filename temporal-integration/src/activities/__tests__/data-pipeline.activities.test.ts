@@ -60,7 +60,7 @@ describe('Data Pipeline Activities', () => {
         on: jest.fn()
       };
 
-      mockedAxios.mockResolvedValue({
+      (mockedAxios as any).mockResolvedValue({
         data: mockStream,
         status: 200,
         statusText: 'OK',
@@ -87,7 +87,7 @@ describe('Data Pipeline Activities', () => {
     });
 
     it('should handle download failure', async () => {
-      mockedAxios.mockRejectedValue(new Error('Network error'));
+      (mockedAxios as any).mockRejectedValue(new Error('Network error'));
 
       await expect(downloadFile({
         url: 'https://invalid-url.com/test.csv',
@@ -97,7 +97,7 @@ describe('Data Pipeline Activities', () => {
 
     it('should create directory if it does not exist', async () => {
       mockedFs.mkdir.mockResolvedValue(undefined);
-      mockedAxios.mockResolvedValue({
+      (mockedAxios as any).mockResolvedValue({
         data: { pipe: jest.fn() },
         status: 200,
         statusText: 'OK',
@@ -645,7 +645,7 @@ describe('Data Pipeline Activities', () => {
       
       // 1. Download file
       const mockStream = { pipe: jest.fn(), on: jest.fn() };
-      mockedAxios.mockResolvedValue({ data: mockStream });
+      (mockedAxios as any).mockResolvedValue({ data: mockStream });
       mockedFs.mkdir.mockResolvedValue(undefined);
       mockedFs.stat.mockResolvedValue({ size: 1024 } as any);
       

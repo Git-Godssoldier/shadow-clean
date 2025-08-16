@@ -72,7 +72,7 @@ export class RedisCacheClient {
         keyPrefix: this.config.keyPrefix,
         enableOfflineQueue: this.config.enableOfflineQueue,
         maxRetriesPerRequest: this.config.maxRetriesPerRequest,
-        retryStrategy: this.config.retryStrategy,
+        retryStrategy: this.config.retryStrategy as ((times: number) => number | void | null) | undefined,
         lazyConnect: this.config.lazyConnect,
         enableReadyCheck: this.config.enableReadyCheck
       };

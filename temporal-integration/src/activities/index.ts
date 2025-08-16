@@ -76,8 +76,8 @@ async function processDataTask(
   const startTime = Date.now();
   
   // Simulate data processing with heartbeat
-  const steps = payload.steps || 10;
-  const stepDelay = payload.stepDelay || 100;
+  const steps = typeof payload.steps === 'number' ? payload.steps : 10;
+  const stepDelay = typeof payload.stepDelay === 'number' ? payload.stepDelay : 100;
   
   for (let i = 0; i < steps; i++) {
     // Check for cancellation
@@ -97,7 +97,7 @@ async function processDataTask(
     await new Promise(resolve => setTimeout(resolve, stepDelay));
     
     // Simulate processing logic
-    if (payload.simulateError && i === Math.floor(steps / 2)) {
+    if (payload.simulateError === true && i === Math.floor(steps / 2)) {
       throw new Error('Simulated processing error');
     }
   }
@@ -105,7 +105,7 @@ async function processDataTask(
   const result = {
     processedRecords: steps,
     processingTime: Date.now() - startTime,
-    dataSize: payload.dataSize || 0,
+    dataSize: typeof payload.dataSize === 'number' ? payload.dataSize : 0,
     checksum: `checksum-${task.id}-${Date.now()}`
   };
   
@@ -129,8 +129,8 @@ async function processFileTask(
   const startTime = Date.now();
   
   // Simulate file processing
-  const fileSize = payload.fileSize || 1024;
-  const chunkSize = payload.chunkSize || 64;
+  const fileSize = typeof payload.fileSize === 'number' ? payload.fileSize : 1024;
+  const chunkSize = typeof payload.chunkSize === 'number' ? payload.chunkSize : 64;
   const chunks = Math.ceil(fileSize / chunkSize);
   
   for (let i = 0; i < chunks; i++) {
@@ -150,7 +150,7 @@ async function processFileTask(
   }
   
   const result = {
-    fileName: payload.fileName || `file-${task.id}`,
+    fileName: typeof payload.fileName === 'string' ? payload.fileName : `file-${task.id}`,
     fileSize,
     chunksProcessed: chunks,
     processingTime: Date.now() - startTime,

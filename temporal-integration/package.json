@@ -7,6 +7,9 @@
   "scripts": {
     "build": "tsc --build",
     "build:watch": "tsc --build --watch",
+    "build:production": "tsc --build tsconfig.build.json",
+    "build:webpack": "tsc --noEmitOnError false && webpack --config webpack.bundle.config.js",
+    "bundle:analyze-worker": "webpack-bundle-analyzer dist/bundles/production-worker.bundle.js",
     "dev": "concurrently \"npm run build:watch\" \"nodemon dist/worker.js\"",
     "start": "node dist/worker.js",
     "test": "jest",
@@ -22,6 +25,8 @@
     "worker:dev": "nodemon --exec \"ts-node src/workers/dev-worker.ts\"",
     "worker:prod": "node dist/workers/production-worker.js",
     "bundle:workflows": "webpack --config webpack.workflows.config.js",
+    "bundle:worker": "webpack --config webpack.worker.config.js",
+    "bundle:analyze": "webpack-bundle-analyzer dist/workers/worker.bundle.js",
     "docker:build": "docker build -t shadow-temporal .",
     "docker:run": "docker run --rm -p 3000:3000 shadow-temporal",
     "deploy:staging": "./scripts/deploy-staging.sh",
@@ -86,7 +91,8 @@
     "typedoc": "^0.25.7",
     "typescript": "^5.3.3",
     "webpack": "^5.89.0",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^5.1.4",
+    "webpack-bundle-analyzer": "^4.10.1"
   },
   "engines": {
     "node": ">=20.0.0"
