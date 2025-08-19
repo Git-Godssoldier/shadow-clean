@@ -6,8 +6,6 @@
 import { 
   WorkerConfig, 
   ClientConfig, 
-  AutoTuningConfig,
-  ResourceLimits,
   ConnectionPoolConfig,
   WorkflowExecutionConfig
 } from '../types';
@@ -16,6 +14,22 @@ import { RetryPolicies } from '../utils/error-handling';
 // ============================================================================
 // Environment Configuration
 // ============================================================================
+
+// Define missing configuration types
+export interface AutoTuningConfig {
+  enabled: boolean;
+  targetUtilization: number;
+  adjustmentInterval: number;
+  minConcurrency: number;
+  maxConcurrency: number;
+}
+
+export interface ResourceLimits {
+  maxMemoryMB: number;
+  maxCpuUsage: number;
+  maxConnections: number;
+  maxQueueSize: number;
+}
 
 export interface EnvironmentConfig {
   worker: WorkerConfig;
@@ -44,13 +58,8 @@ export const developmentConfig: EnvironmentConfig = {
     maxConcurrentActivityTaskExecutions: 2,
     maxConcurrentWorkflowTaskExecutions: 1,
     maxConcurrentLocalActivityExecutions: 4,
-    maxConcurrentActivityTaskPolls: 1,
-    maxConcurrentWorkflowTaskPolls: 1,
     
-    // Development-friendly timeouts
-    maxActivitiesPerSecond: 10,
-    maxTaskQueueActivitiesPerSecond: 5,
-    stickyQueueScheduleToStartTimeout: '5s',
+    // Development-friendly settings
     
     // Enable debug features
     debugMode: true,
@@ -74,7 +83,7 @@ export const developmentConfig: EnvironmentConfig = {
     // Auto-tuning configuration
     autoTuning: {
       enabled: false, // Disabled in development
-      adjustmentIntervalMs: 60000,
+      adjustmentInterval: 60000,
       highCpuThreshold: 90,
       lowCpuThreshold: 10,
       highMemoryThreshold: 90,
@@ -86,8 +95,7 @@ export const developmentConfig: EnvironmentConfig = {
     namespace: 'default',
     connectionPool: {
       maxConnections: 2,
-      healthCheckIntervalMs: 60000,
-      connectionTimeoutMs: 30000
+      healthCheckIntervalMs: 60000
     },
     
     interceptors: {
@@ -99,17 +107,16 @@ export const developmentConfig: EnvironmentConfig = {
   
   autoTuning: {
     enabled: false,
-    adjustmentIntervalMs: 60000,
-    highCpuThreshold: 90,
-    lowCpuThreshold: 10,
-    highMemoryThreshold: 90,
-    highQueueLengthThreshold: 50
+    targetUtilization: 75,
+    adjustmentInterval: 60000,
+    minConcurrency: 1,
+    maxConcurrency: 10
   },
   
   resourceLimits: {
-    maxMemoryUsageMB: 512,
-    maxCpuUsagePercent: 80,
-    maxConcurrentTasks: 10,
+    maxMemoryMB: 512,
+    maxCpuUsage: 80,
+    maxConnections: 10,
     maxQueueSize: 100
   },
   
@@ -135,13 +142,8 @@ export const stagingConfig: EnvironmentConfig = {
     maxConcurrentActivityTaskExecutions: 4,
     maxConcurrentWorkflowTaskExecutions: 2,
     maxConcurrentLocalActivityExecutions: 8,
-    maxConcurrentActivityTaskPolls: 2,
-    maxConcurrentWorkflowTaskPolls: 2,
     
-    // Staging-appropriate timeouts
-    maxActivitiesPerSecond: 50,
-    maxTaskQueueActivitiesPerSecond: 25,
-    stickyQueueScheduleToStartTimeout: '7s',
+    // Staging-appropriate settings
     
     // Production-like settings but more conservative
     debugMode: false,
@@ -165,7 +167,7 @@ export const stagingConfig: EnvironmentConfig = {
     // Enable auto-tuning with conservative settings
     autoTuning: {
       enabled: true,
-      adjustmentIntervalMs: 45000,
+      adjustmentInterval: 45000,
       highCpuThreshold: 85,
       lowCpuThreshold: 15,
       highMemoryThreshold: 85,
@@ -177,8 +179,7 @@ export const stagingConfig: EnvironmentConfig = {
     namespace: 'staging',
     connectionPool: {
       maxConnections: 5,
-      healthCheckIntervalMs: 45000,
-      connectionTimeoutMs: 25000
+      healthCheckIntervalMs: 45000
     },
     
     interceptors: {
@@ -190,7 +191,7 @@ export const stagingConfig: EnvironmentConfig = {
   
   autoTuning: {
     enabled: true,
-    adjustmentIntervalMs: 45000,
+    adjustmentInterval: 45000,
     highCpuThreshold: 85,
     lowCpuThreshold: 15,
     highMemoryThreshold: 85,
@@ -198,7 +199,7 @@ export const stagingConfig: EnvironmentConfig = {
   },
   
   resourceLimits: {
-    maxMemoryUsageMB: 1024,
+    maxMemoryMB: 1024,
     maxCpuUsagePercent: 85,
     maxConcurrentTasks: 50,
     maxQueueSize: 500
@@ -226,13 +227,8 @@ export const productionConfig: EnvironmentConfig = {
     maxConcurrentActivityTaskExecutions: 10,
     maxConcurrentWorkflowTaskExecutions: 5,
     maxConcurrentLocalActivityExecutions: 20,
-    maxConcurrentActivityTaskPolls: 5,
-    maxConcurrentWorkflowTaskPolls: 5,
     
-    // Production-grade timeouts
-    maxActivitiesPerSecond: 1000,
-    maxTaskQueueActivitiesPerSecond: 500,
-    stickyQueueScheduleToStartTimeout: '10s',
+    // Production-grade settings
     
     // Optimized for production
     debugMode: false,
@@ -256,7 +252,7 @@ export const productionConfig: EnvironmentConfig = {
     // Aggressive auto-tuning for production
     autoTuning: {
       enabled: true,
-      adjustmentIntervalMs: 30000,
+      adjustmentInterval: 30000,
       highCpuThreshold: 80,
       lowCpuThreshold: 20,
       highMemoryThreshold: 85,
@@ -268,8 +264,7 @@ export const productionConfig: EnvironmentConfig = {
     namespace: 'production',
     connectionPool: {
       maxConnections: 10,
-      healthCheckIntervalMs: 30000,
-      connectionTimeoutMs: 20000
+      healthCheckIntervalMs: 30000
     },
     
     interceptors: {
@@ -281,7 +276,7 @@ export const productionConfig: EnvironmentConfig = {
   
   autoTuning: {
     enabled: true,
-    adjustmentIntervalMs: 30000,
+    adjustmentInterval: 30000,
     highCpuThreshold: 80,
     lowCpuThreshold: 20,
     highMemoryThreshold: 85,
@@ -289,7 +284,7 @@ export const productionConfig: EnvironmentConfig = {
   },
   
   resourceLimits: {
-    maxMemoryUsageMB: 4096,
+    maxMemoryMB: 4096,
     maxCpuUsagePercent: 80,
     maxConcurrentTasks: 200,
     maxQueueSize: 2000
@@ -321,7 +316,7 @@ export const workloadConfigs = {
     defaultHeartbeatThrottleInterval: '5s',
     autoTuning: {
       enabled: true,
-      adjustmentIntervalMs: 60000,
+      adjustmentInterval: 60000,
       highCpuThreshold: 90,
       lowCpuThreshold: 30,
       highMemoryThreshold: 80,
@@ -342,7 +337,7 @@ export const workloadConfigs = {
     defaultHeartbeatThrottleInterval: '2s',
     autoTuning: {
       enabled: true,
-      adjustmentIntervalMs: 30000,
+      adjustmentInterval: 30000,
       highCpuThreshold: 70,
       lowCpuThreshold: 10,
       highMemoryThreshold: 85,
@@ -363,7 +358,7 @@ export const workloadConfigs = {
     defaultHeartbeatThrottleInterval: '10s',
     autoTuning: {
       enabled: true,
-      adjustmentIntervalMs: 45000,
+      adjustmentInterval: 45000,
       highCpuThreshold: 75,
       lowCpuThreshold: 15,
       highMemoryThreshold: 90,
@@ -382,12 +377,10 @@ export const workloadConfigs = {
     maxCachedWorkflows: 1000,
     maxHeartbeatThrottleInterval: '5s',
     defaultHeartbeatThrottleInterval: '1s',
-    maxActivitiesPerSecond: 2000,
-    maxTaskQueueActivitiesPerSecond: 1000,
     stickyQueueScheduleToStartTimeout: '2s',
     autoTuning: {
       enabled: true,
-      adjustmentIntervalMs: 15000,
+      adjustmentInterval: 15000,
       highCpuThreshold: 85,
       lowCpuThreshold: 25,
       highMemoryThreshold: 80,
@@ -406,12 +399,10 @@ export const workloadConfigs = {
     maxCachedWorkflows: 200,
     maxHeartbeatThrottleInterval: '2m',
     defaultHeartbeatThrottleInterval: '30s',
-    maxActivitiesPerSecond: 500,
-    maxTaskQueueActivitiesPerSecond: 250,
     stickyQueueScheduleToStartTimeout: '30s',
     autoTuning: {
       enabled: true,
-      adjustmentIntervalMs: 120000,
+      adjustmentInterval: 120000,
       highCpuThreshold: 85,
       lowCpuThreshold: 20,
       highMemoryThreshold: 85,
@@ -513,7 +504,7 @@ export class ConfigurationManager {
         throw new Error('Worker task queue is required');
       }
       
-      if (config.worker.maxConcurrentActivityTaskExecutions <= 0) {
+      if (config.worker.maxConcurrentActivityTaskExecutions && config.worker.maxConcurrentActivityTaskExecutions <= 0) {
         throw new Error('maxConcurrentActivityTaskExecutions must be positive');
       }
       
@@ -523,8 +514,8 @@ export class ConfigurationManager {
       }
       
       // Validate resource limits
-      if (config.resourceLimits.maxMemoryUsageMB <= 0) {
-        throw new Error('maxMemoryUsageMB must be positive');
+      if (config.resourceLimits.maxMemoryMB <= 0) {
+        throw new Error('maxMemoryMB must be positive');
       }
       
       console.log('Configuration validation passed');
@@ -576,8 +567,7 @@ export const workflowExecutionConfigs: Record<string, WorkflowExecutionConfig> =
   shortRunning: {
     defaultExecutionTimeout: '5m',
     defaultRunTimeout: '3m',
-    defaultTaskTimeout: '30s',
-    retryPolicy: RetryPolicies.FAST
+    defaultTaskTimeout: '30s'
   },
 
   /**
@@ -586,8 +576,7 @@ export const workflowExecutionConfigs: Record<string, WorkflowExecutionConfig> =
   longRunning: {
     defaultExecutionTimeout: '24h',
     defaultRunTimeout: '12h',
-    defaultTaskTimeout: '1m',
-    retryPolicy: RetryPolicies.AGGRESSIVE
+    defaultTaskTimeout: '1m'
   },
 
   /**
@@ -596,8 +585,7 @@ export const workflowExecutionConfigs: Record<string, WorkflowExecutionConfig> =
   critical: {
     defaultExecutionTimeout: '2h',
     defaultRunTimeout: '1h',
-    defaultTaskTimeout: '30s',
-    retryPolicy: RetryPolicies.CRITICAL
+    defaultTaskTimeout: '30s'
   },
 
   /**
@@ -606,22 +594,12 @@ export const workflowExecutionConfigs: Record<string, WorkflowExecutionConfig> =
   batch: {
     defaultExecutionTimeout: '12h',
     defaultRunTimeout: '6h',
-    defaultTaskTimeout: '5m',
-    retryPolicy: RetryPolicies.STANDARD
+    defaultTaskTimeout: '5m'
   }
 };
 
 // ============================================================================
 // Exports
 // ============================================================================
-
-export {
-  developmentConfig,
-  stagingConfig,
-  productionConfig,
-  workloadConfigs,
-  workflowExecutionConfigs,
-  ConfigurationManager
-};
 
 export default ConfigurationManager;

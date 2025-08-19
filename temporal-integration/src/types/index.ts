@@ -34,7 +34,8 @@ export const TaskRequestSchema = z.object({
     maximumInterval: z.string().default('1m')
   }).optional(),
   timeout: z.string().default('5m'),
-  metadata: z.record(z.string()).default({})
+  metadata: z.record(z.string()).default({}),
+  data: z.unknown().optional()
 });
 
 export type TaskRequest = z.infer<typeof TaskRequestSchema>;
@@ -354,8 +355,56 @@ export type {
 } from '@temporalio/workflow';
 
 // ============================================================================
+// Advanced Workflow Types
+// ============================================================================
+
+export interface WorkflowState {
+  status: TaskStatus;
+  currentTask?: string;
+  completedTasks: string[];
+  failedTasks: string[];
+  progress: number;
+  isPaused: boolean;
+  isCancelled: boolean;
+  metadata: Record<string, unknown>;
+}
+
+export interface ConfigurationUpdate {
+  type: 'retry_policy' | 'timeout' | 'concurrency' | 'general';
+  config: Record<string, unknown>;
+  timestamp: Date;
+}
+
+export interface DynamicSchedule {
+  enabled: boolean;
+  interval?: string;
+  cronExpression?: string;
+  maxExecutions?: number;
+  currentExecution: number;
+}
+
+export interface StateSnapshot {
+  timestamp: Date;
+  state: WorkflowState;
+  metrics?: WorkflowMetrics;
+  configuration?: Record<string, unknown>;
+}
+
+export interface ControlAction {
+  type: 'pause' | 'resume' | 'cancel' | 'skip' | 'retry' | 'update_config';
+  payload?: unknown;
+  timestamp: Date;
+  reason?: string;
+}
+
+// ============================================================================
 // Missing Type Definitions
 // ============================================================================
+
+// Import missing types
+import type { RetryPolicy } from '@temporalio/common';
+import type { ParentClosePolicy, ChildWorkflowCancellationType } from '@temporalio/workflow';
+import type { WorkflowOptions } from '@temporalio/client';
 
 // Activity Options (custom definition since not exported from client)
 export interface ActivityOptions {
@@ -390,6 +439,8 @@ export interface ScheduledWorkflowConfig {
   timezone?: string;
   jitter?: string;
   notes?: string;
+  checkIntervalMs?: number;
+  batchSize?: number;
 }
 
 // Timer Event
@@ -405,6 +456,36 @@ export interface RecurringTaskConfig {
   interval: string;
   taskType: string;
   payload: unknown;
+  taskPayload?: unknown;
   retryPolicy?: RetryPolicy;
   enabled: boolean;
+  maxBatches?: number;
+  taskIdPrefix?: string;
+  priority?: 'low' | 'normal' | 'high' | 'critical';
+  timeout?: string;
+}
+
+// Client Configuration Types
+export interface ConnectionPoolConfig {
+  maxConnections?: number;
+  minConnections?: number;
+  healthCheckIntervalMs?: number;
+  reconnectAttempts?: number;
+}
+
+export interface ClientConfig {
+  namespace?: string;
+  connectionPool?: ConnectionPoolConfig;
+  connectionId?: string;
+  dataConverter?: any;
+  interceptors?: {
+    workflow?: any[];
+  };
+  queryRejectCondition?: any;
+}
+
+export interface WorkflowExecutionConfig {
+  defaultExecutionTimeout?: string;
+  defaultRunTimeout?: string;
+  defaultTaskTimeout?: string;
 }

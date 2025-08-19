@@ -334,7 +334,7 @@ export async function dataPipelineWorkflow(
       duration: Date.now() - state.startTime.getTime(),
       outputLocation: state.outputLocation || '',
       reportUrl: report.url,
-      errors: state.errors.length > 0 ? state.errors : undefined
+      errors: state.errors.length > 0 ? state.errors : []
     };
     
   } catch (error) {

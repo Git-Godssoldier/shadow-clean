@@ -217,7 +217,7 @@ export class ErrorFactory {
       type: 'NetworkError',
       nonRetryable: false,
       nextRetryDelay: '2s',
-      details: { endpoint, statusCode, timestamp: new Date().toISOString() }
+      details: [{ endpoint, statusCode, timestamp: new Date().toISOString() }]
     });
   }
 
@@ -231,7 +231,7 @@ export class ErrorFactory {
       type: 'RateLimitError',
       nonRetryable: false,
       nextRetryDelay: delay,
-      details: { retryAfter, timestamp: new Date().toISOString() }
+      details: [{ retryAfter, timestamp: new Date().toISOString() }]
     });
   }
 
@@ -245,7 +245,7 @@ export class ErrorFactory {
       type: 'TimeoutError',
       nonRetryable: false,
       nextRetryDelay: '5s',
-      details: { timeoutMs, operation, timestamp: new Date().toISOString() }
+      details: [{ timeoutMs, operation, timestamp: new Date().toISOString() }]
     });
   }
 
@@ -419,7 +419,7 @@ export class ErrorHandler {
       type: metadata.category,
       nonRetryable: false,
       nextRetryDelay: metadata.retryDelay,
-      details: { ...metadata.context, ...context }
+      details: [{ ...metadata.context, ...context }]
     });
   }
 
@@ -460,7 +460,9 @@ export class ErrorHandler {
         message: error.message,
         type: error.type || 'ApplicationFailure',
         retryable: !error.nonRetryable,
-        details: error.details
+        details: Array.isArray(error.details) ? 
+          (error.details[0] as Record<string, unknown>) : 
+          (error.details as Record<string, unknown> || {})
       };
     }
 
@@ -471,8 +473,7 @@ export class ErrorHandler {
         retryable: true,
         details: {
           activityId: error.activityId,
-          activityType: error.activityType,
-          taskQueue: error.taskQueue
+          activityType: error.activityType
         }
       };
     }

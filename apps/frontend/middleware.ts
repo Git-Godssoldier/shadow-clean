@@ -1,28 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  // Allow access to auth page, API routes, and static files
-  if (
-    pathname.startsWith("/auth") ||
-    pathname.startsWith("/api") ||
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon")
-  ) {
-    return NextResponse.next();
-  }
-
-  // Check for better-auth session token in cookies
-  const sessionToken = request.cookies.get("better-auth.session_token");
-
-  // If no session token, redirect to auth page
-  if (!sessionToken) {
-    const authUrl = request.nextUrl.clone();
-    authUrl.pathname = "/auth";
-    return NextResponse.redirect(authUrl);
-  }
-
+export async function middleware(_request: NextRequest) {
+  // Temporarily disable auth guard for all routes
   return NextResponse.next();
 }
 

@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
-  "buildCommand": "npm run build",
+  "buildCommand": "cd ../.. && npm run generate && cd apps/frontend && next build",
   "installCommand": "npm install --no-audit --no-fund",
   "outputDirectory": ".next",
   "devCommand": "next dev",

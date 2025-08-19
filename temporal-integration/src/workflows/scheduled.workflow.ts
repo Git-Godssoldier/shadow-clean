@@ -130,8 +130,8 @@ export async function cronScheduledWorkflow(
         id: taskId,
         metadata: {
           ...taskTemplate.metadata,
-          scheduledExecution: true,
-          executionNumber: executionsCompleted + 1,
+          scheduledExecution: 'true',
+          executionNumber: String(executionsCompleted + 1),
           scheduledTime: new Date().toISOString()
         }
       };
@@ -140,20 +140,7 @@ export async function cronScheduledWorkflow(
 
       try {
         // Validate and process the task
-        await validateInput({
-          data: scheduledTask,
-          context: {
-            activityId: `validate-${taskId}`,
-            workflowId,
-            attemptNumber: 1,
-            info: {
-              taskQueue: workflowInfo().taskQueue,
-              activityType: 'validateInput',
-              scheduledTime: new Date(),
-              startedTime: new Date()
-            }
-          }
-        });
+        await validateInput(scheduledTask);
 
         const result = await processTask({
           data: scheduledTask,
@@ -321,9 +308,9 @@ export async function intervalScheduledWorkflow(
         id: taskId,
         metadata: {
           ...taskTemplate.metadata,
-          intervalExecution: true,
-          executionNumber: executionsCompleted + 1,
-          actualInterval
+          intervalExecution: 'true',
+          executionNumber: String(executionsCompleted + 1),
+          actualInterval: String(actualInterval)
         }
       };
 
@@ -417,7 +404,7 @@ export async function dynamicScheduledWorkflow(
       ...task,
       metadata: {
         ...task.metadata,
-        dynamicallyScheduled: true,
+        dynamicallyScheduled: 'true',
         addedAt: new Date().toISOString()
       }
     });
@@ -463,9 +450,8 @@ export async function dynamicScheduledWorkflow(
     // Set up workflow timeout
     await CancellationScope.cancellable(async () => {
       const maxDurationMs = parseDuration(maxDuration);
-      const timeoutScope = CancellationScope.withTimeout(maxDurationMs);
       
-      await timeoutScope.run(async () => {
+      await CancellationScope.withTimeout(maxDurationMs, async () => {
         while (isActive) {
           // Wait for check interval
           await sleep(currentConfig.checkIntervalMs || 5000);
@@ -682,7 +668,7 @@ function parseDuration(duration: string): number {
   const value = parseInt(match[1]);
   const unit = match[2] || 'ms';
   
-  return value * (units[unit] || 1);
+  return value * (units[unit as keyof typeof units] || 1);
 }
 
 function generateTaskBatch(
@@ -699,16 +685,16 @@ function generateTaskBatch(
       id: taskId,
       type: config.taskType,
       payload: {
-        ...config.taskPayload,
+        ...(typeof config.taskPayload === 'object' && config.taskPayload !== null ? config.taskPayload : {}),
         batchNumber,
         taskIndex: i
       },
       priority: config.priority || 'normal',
       timeout: config.timeout || '5m',
       metadata: {
-        batchGenerated: true,
-        batchNumber,
-        taskIndex: i,
+        batchGenerated: 'true',
+        batchNumber: String(batchNumber),
+        taskIndex: String(i),
         generatedAt: new Date().toISOString()
       }
     });

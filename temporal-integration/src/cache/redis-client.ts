@@ -64,7 +64,7 @@ export class RedisCacheClient {
       this.client = new Redis(this.config.url);
       this.subscriber = new Redis(this.config.url);
     } else {
-      const options = {
+      const options: any = {
         host: this.config.host,
         port: this.config.port,
         password: this.config.password,
@@ -72,10 +72,13 @@ export class RedisCacheClient {
         keyPrefix: this.config.keyPrefix,
         enableOfflineQueue: this.config.enableOfflineQueue,
         maxRetriesPerRequest: this.config.maxRetriesPerRequest,
-        retryStrategy: this.config.retryStrategy as ((times: number) => number | void | null) | undefined,
         lazyConnect: this.config.lazyConnect,
         enableReadyCheck: this.config.enableReadyCheck
       };
+      
+      if (this.config.retryStrategy) {
+        options.retryStrategy = this.config.retryStrategy;
+      }
       
       this.client = new Redis(options);
       this.subscriber = new Redis(options);
@@ -187,7 +190,7 @@ export class RedisCacheClient {
         timestamp: Date.now(),
         ttl: ttl || this.config.ttl,
         hits: 0,
-        tags
+        tags: tags || []
       };
 
       await this.client.set(
@@ -344,7 +347,7 @@ export class RedisCacheClient {
           timestamp: Date.now(),
           ttl: ttl || this.config.ttl,
           hits: 0,
-          tags
+          tags: tags || []
         };
         
         pipeline.set(fullKey, JSON.stringify(entry), 'EX', entry.ttl);
@@ -506,11 +509,11 @@ export class RedisCacheClient {
     const lines = info.split('\r\n');
     for (const line of lines) {
       if (line.startsWith('used_memory_human:')) {
-        stats.memory = line.split(':')[1];
+        stats.memory = line.split(':')[1] || '0';
       } else if (line.startsWith('keyspace_hits:')) {
-        stats.hits = parseInt(line.split(':')[1]);
+        stats.hits = parseInt(line.split(':')[1] || '0');
       } else if (line.startsWith('keyspace_misses:')) {
-        stats.misses = parseInt(line.split(':')[1]);
+        stats.misses = parseInt(line.split(':')[1] || '0');
       }
     }
     

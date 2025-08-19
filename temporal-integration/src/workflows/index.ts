@@ -9,21 +9,19 @@ export { cronScheduledWorkflow, intervalScheduledWorkflow } from './scheduled.wo
 
 // Export specific signals, queries, and updates to avoid conflicts
 export { 
-  pauseWorkflowSignal,
-  resumeWorkflowSignal,
-  cancelWorkflowSignal,
-  getWorkflowStateQuery
+  pauseTaskSignal,
+  resumeTaskSignal,
+  cancelTaskSignal,
+  getProgressQuery
 } from './task-processing.workflow';
 
 export {
-  retryFailedTaskSignal,
-  skipStepSignal,
-  modifyControlFlowSignal,
-  updateQualityGateSignal,
-  updateCircuitBreakerSignal,
-  getControlStateQuery,
-  updateConfigUpdate,
-  updateRateLimitUpdate
+  pauseWorkflowSignal,
+  resumeWorkflowSignal,
+  cancelWorkflowSignal,
+  updateConfigurationSignal,
+  skipTaskSignal,
+  getSignalHistoryQuery
 } from './advanced-control.workflow';
 
 export {

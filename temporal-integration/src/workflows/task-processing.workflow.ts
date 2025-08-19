@@ -39,7 +39,7 @@ const {
 } = proxyActivities<typeof activities>({
   startToCloseTimeout: '5 minutes',
   scheduleToCloseTimeout: '10 minutes',
-  retryPolicy: {
+  retry: {
     initialInterval: '1 second',
     maximumInterval: '1 minute',
     backoffCoefficient: 2,
@@ -297,7 +297,9 @@ export async function taskProcessingWorkflow(
       completedAt: new Date(),
       duration: Date.now() - new Date(metadata.startedAt as string).getTime(),
       attempts: 1,
-      metadata: metadata
+      metadata: Object.fromEntries(
+        Object.entries(metadata).map(([key, value]) => [key, String(value)])
+      )
     };
 
     log.info('Task processing completed successfully', {
@@ -355,7 +357,9 @@ export async function taskProcessingWorkflow(
       completedAt: new Date(),
       duration: Date.now() - new Date(metadata.startedAt as string).getTime(),
       attempts: 1,
-      metadata: metadata
+      metadata: Object.fromEntries(
+        Object.entries(metadata).map(([key, value]) => [key, String(value)])
+      )
     };
 
     return {
@@ -408,8 +412,8 @@ export async function batchProcessingWorkflow(
           workflowId: `${context.workflowId}-batch-${currentBatch}-task-${index}`,
           metadata: {
             ...context.metadata,
-            batchNumber: currentBatch,
-            taskIndex: index
+            batchNumber: String(currentBatch),
+            taskIndex: String(index)
           }
         }
       })
@@ -430,7 +434,7 @@ export async function batchProcessingWorkflow(
           completedAt: new Date(),
           duration: 0,
           attempts: 1,
-          metadata: { batchNumber: currentBatch }
+          metadata: { batchNumber: String(currentBatch) }
         };
         results.push(failedResult);
       }
