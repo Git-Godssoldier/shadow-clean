@@ -1,5 +1,5 @@
 # Multi-stage Dockerfile for Railway deployment
-FROM node:18-alpine AS builder
+FROM node:22-alpine AS builder
 
 # Install dependencies for building
 RUN apk add --no-cache python3 make g++ git
@@ -27,7 +27,7 @@ RUN npm run generate
 RUN npm run build
 
 # Production stage
-FROM node:18-alpine
+FROM node:22-alpine
 
 # Install git for workspace operations
 RUN apk add --no-cache git
