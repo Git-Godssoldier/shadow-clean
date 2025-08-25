@@ -1,6 +1,6 @@
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "apps/server/Dockerfile"
+dockerfilePath = "Dockerfile"
 
 [deploy]
 healthcheckPath = "/health"
@@ -8,7 +8,7 @@ healthcheckTimeout = 30
 
 [[services]]
 name = "shadow-backend"
-root = "/"
+root = "apps/server"
 
   [services.env]
   NODE_ENV = "production"
