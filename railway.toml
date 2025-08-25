@@ -1,9 +1,7 @@
 [build]
-builder = "dockerfile"
-buildCommand = ""
+builder = "DOCKERFILE"
 
 [deploy]
-startCommand = "node apps/server/dist/server.js"
 healthcheckPath = "/health"
 healthcheckTimeout = 30
 
