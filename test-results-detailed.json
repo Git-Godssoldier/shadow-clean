@@ -1,0 +1,178 @@
+{
+  "passed": 15,
+  "failed": 3,
+  "total": 18,
+  "details": [
+    {
+      "name": "Tool System - Available Tools",
+      "passed": true,
+      "error": "Found 12/12 expected tools",
+      "details": {
+        "foundTools": [
+          "todo_write",
+          "read_file",
+          "edit_file",
+          "search_replace",
+          "run_terminal_cmd",
+          "list_dir",
+          "grep_search",
+          "file_search",
+          "delete_file",
+          "semantic_search",
+          "add_memory",
+          "list_memories"
+        ],
+        "missingTools": []
+      }
+    },
+    {
+      "name": "Tool Invocation Patterns",
+      "passed": true,
+      "error": "Found 5/5 expected patterns",
+      "details": {
+        "patternCount": 5,
+        "patterns": {
+          "hasToolDefinition": true,
+          "hasExecuteFunction": true,
+          "hasReturnStatement": true,
+          "hasConsoleLog": true,
+          "hasExecutor": true
+        }
+      }
+    },
+    {
+      "name": "API Structure - /api/models",
+      "passed": true,
+      "error": "Status: 401",
+      "details": {
+        "status": 401,
+        "hasData": true
+      }
+    },
+    {
+      "name": "API Structure - /api/user-settings",
+      "passed": true,
+      "error": "Status: 401",
+      "details": {
+        "status": 401,
+        "hasData": true
+      }
+    },
+    {
+      "name": "API Structure - /api/github/repositories",
+      "passed": true,
+      "error": "Status: 401",
+      "details": {
+        "status": 401,
+        "hasData": true
+      }
+    },
+    {
+      "name": "Frontend Interface Components",
+      "passed": false,
+      "error": "Status: 401",
+      "details": {
+        "status": 401,
+        "hasComponents": false
+      }
+    },
+    {
+      "name": "Computer View Interface",
+      "passed": false,
+      "error": "Status: 401",
+      "details": {
+        "status": 401,
+        "hasFileExplorer": true
+      }
+    },
+    {
+      "name": "Multiturn Conversation Interface",
+      "passed": false,
+      "error": "Status: 401",
+      "details": {
+        "status": 401,
+        "hasChatComponents": true
+      }
+    },
+    {
+      "name": "Task Management - /api/tasks",
+      "passed": true,
+      "error": "Status: 401",
+      "details": {
+        "status": 401
+      }
+    },
+    {
+      "name": "Task Management - /api/tasks/test-task-id",
+      "passed": true,
+      "error": "Status: 401",
+      "details": {
+        "status": 401
+      }
+    },
+    {
+      "name": "Task Management - /api/tasks/test-task-id/status",
+      "passed": true,
+      "error": "Status: 401",
+      "details": {
+        "status": 401
+      }
+    },
+    {
+      "name": "File Operations - /api/tasks/test-task-id/files/tree",
+      "passed": true,
+      "error": "Status: 401",
+      "details": {
+        "status": 401
+      }
+    },
+    {
+      "name": "File Operations - /api/tasks/test-task-id/files/content",
+      "passed": true,
+      "error": "Status: 401",
+      "details": {
+        "status": 401
+      }
+    },
+    {
+      "name": "GitHub Integration - /api/github/repositories",
+      "passed": true,
+      "error": "Status: 401",
+      "details": {
+        "status": 401
+      }
+    },
+    {
+      "name": "GitHub Integration - /api/github/branches",
+      "passed": true,
+      "error": "Status: 401",
+      "details": {
+        "status": 401
+      }
+    },
+    {
+      "name": "GitHub Integration - /api/github/issues",
+      "passed": true,
+      "error": "Status: 401",
+      "details": {
+        "status": 401
+      }
+    },
+    {
+      "name": "Authentication Flow - /api/auth/login",
+      "passed": true,
+      "error": "Status: 401",
+      "details": {
+        "status": 401
+      }
+    },
+    {
+      "name": "Authentication Flow - /api/auth/logout",
+      "passed": true,
+      "error": "Status: 401",
+      "details": {
+        "status": 401
+      }
+    }
+  ]
+}

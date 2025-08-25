@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: temporal-config
+  namespace: shadow-platform
+data:
+  temporal.address: "temporal.temporal-system.svc.cluster.local:7233"
+  temporal.namespace: "default"
+  temporal.taskQueue: "shadow-tasks"
+  metrics.port: "9090"
+  log.level: "info"
+  worker.maxConcurrentActivities: "100"
+  worker.maxConcurrentWorkflows: "100"
+  worker.maxCachedWorkflows: "1000"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: temporal-worker-config
+  namespace: shadow-platform
+data:
+  config.json: |
+    {
+      "temporal": {
+        "connection": {
+          "address": "temporal.temporal-system.svc.cluster.local:7233",
+          "namespace": "default",
+          "tls": {
+            "enabled": false
+          }
+        },
+        "worker": {
+          "taskQueue": "shadow-tasks",
+          "maxConcurrentActivityExecutions": 100,
+          "maxConcurrentWorkflowTaskExecutions": 100,
+          "maxCachedWorkflows": 1000,
+          "enableNonDeterministicWorkflowPolicy": false
+        }
+      },
+      "monitoring": {
+        "prometheus": {
+          "enabled": true,
+          "port": 9090,
+          "path": "/metrics"
+        },
+        "opentelemetry": {
+          "enabled": true,
+          "serviceName": "temporal-worker",
+          "jaegerEndpoint": "http://jaeger.monitoring.svc.cluster.local:14268/api/traces"
+        }
+      },
+      "security": {
+        "encryption": {
+          "enabled": true,
+          "algorithm": "aes-256-gcm"
+        },
+        "authentication": {
+          "enabled": true,
+          "type": "jwt"
+        },
+        "authorization": {
+          "enabled": true,
+          "type": "rbac"
+        }
+      },
+      "performance": {
+        "caching": {
+          "enabled": true,
+          "ttl": 3600,
+          "maxSize": 1000
+        },
+        "optimization": {
+          "enabled": true,
+          "adaptiveMode": true
+        }
+      }
+    }

@@ -1,0 +1,97 @@
+# Production Dockerfile for Temporal Client Services
+# Multi-stage build optimized for client applications
+
+# ============================================================================
+# Build Stage
+# ============================================================================
+FROM node:20-alpine AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Install build dependencies
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    git \
+    curl
+
+# Copy package files
+COPY package*.json ./
+COPY tsconfig.json ./
+
+# Install dependencies
+RUN npm ci --only=production=false
+
+# Copy source code
+COPY src/ ./src/
+
+# Build the application
+RUN npm run build
+
+# Remove dev dependencies
+RUN npm prune --production
+
+# ============================================================================
+# Production Stage
+# ============================================================================
+FROM node:20-alpine AS production
+
+# Set environment
+ENV NODE_ENV=production
+ENV LOG_LEVEL=info
+
+# Create app user for security
+RUN addgroup -g 1001 -S temporal && \
+    adduser -S temporal -u 1001
+
+# Install runtime dependencies
+RUN apk add --no-cache \
+    dumb-init \
+    curl \
+    ca-certificates \
+    tini
+
+# Set working directory
+WORKDIR /app
+
+# Copy built application from builder stage
+COPY --from=builder --chown=temporal:temporal /app/dist ./dist
+COPY --from=builder --chown=temporal:temporal /app/node_modules ./node_modules
+COPY --from=builder --chown=temporal:temporal /app/package*.json ./
+
+# Copy configuration files
+COPY --chown=temporal:temporal deployments/config/ ./config/
+
+# Create necessary directories
+RUN mkdir -p /app/logs && \
+    chown -R temporal:temporal /app/logs
+
+# Health check script
+COPY --chown=temporal:temporal deployments/scripts/health-check.sh ./health-check.sh
+RUN chmod +x ./health-check.sh
+
+# Switch to non-root user
+USER temporal
+
+# Expose application port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD ./health-check.sh
+
+# Use tini for proper signal handling
+ENTRYPOINT ["tini", "--"]
+
+# Start the client service
+CMD ["node", "dist/services/client-service.js"]
+
+# ============================================================================
+# Labels for metadata
+# ============================================================================
+LABEL maintainer="Opulent Team"
+LABEL description="Production Temporal Client Service"
+LABEL version="1.0.0"
+LABEL temporal.service.type="client"

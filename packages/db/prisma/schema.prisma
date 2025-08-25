@@ -1,0 +1,305 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                    String                  @id
+  name                  String
+  email                 String                  @unique
+  emailVerified         Boolean
+  image                 String?
+  createdAt             DateTime
+  updatedAt             DateTime
+  tasks                 Task[]
+  accounts              Account[]
+  sessions              Session[]
+  CodebaseUnderstanding CodebaseUnderstanding[]
+  memories              Memory[]
+  userSettings          UserSettings?
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+  githubInstallationId  String?
+  githubAppConnected    Boolean   @default(false)
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
+}
+
+model Task {
+  id     String     @id @default(nanoid())
+  title  String
+  status TaskStatus @default(INITIALIZING)
+
+  // Repo full name "owner/repo"
+  repoFullName String
+  // Repo URL "https://github.com/owner/repo"
+  repoUrl      String
+
+  // User's selected LLM model for this task - updated on each user message
+  // Used for context-aware operations (commits, PR generation, etc.)
+  mainModel                   String?
+  workspacePath               String?
+  initStatus                  InitStatus    @default(INACTIVE)
+  scheduledCleanupAt          DateTime?
+  initializationError         String?
+  errorMessage                String?
+  workspaceCleanedUp          Boolean       @default(false)
+  hasBeenInitialized          Boolean       @default(false)
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime      @updatedAt
+  userId                      String
+  baseBranch                  String
+  baseCommitSha               String
+  shadowBranch                String
+  pullRequestNumber           Int?
+  githubIssueId               String?
+  messages                    ChatMessage[] @relation("TaskMessages")
+  user                        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions                    TaskSession[]
+  todos                       Todo[]
+  memories                    Memory[]
+  stackedTaskCreationMessages ChatMessage[] @relation("StackedTask")
+
+  codebaseUnderstandingId String?
+  codebaseUnderstanding   CodebaseUnderstanding? @relation(fields: [codebaseUnderstandingId], references: [id])
+}
+
+model RepositoryIndex {
+  id            String   @id @default(cuid())
+  repoFullName  String   @unique
+  lastIndexedAt DateTime @default(now())
+  lastCommitSha String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([repoFullName])
+  @@map("repository_index")
+}
+
+model Todo {
+  id        String     @default(cuid())
+  content   String
+  status    TodoStatus @default(PENDING)
+  sequence  Int
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  taskId    String
+  task      Task       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, id])
+  @@index([taskId, sequence])
+  @@index([taskId, status])
+}
+
+model ChatMessage {
+  id                  String               @id @default(cuid())
+  content             String
+  role                MessageRole
+  llmModel            String
+  metadata            Json?
+  sequence            Int
+  promptTokens        Int?
+  completionTokens    Int?
+  totalTokens         Int?
+  finishReason        String?
+  createdAt           DateTime             @default(now())
+  editedAt            DateTime?
+  taskId              String
+  task                Task                 @relation("TaskMessages", fields: [taskId], references: [id], onDelete: Cascade)
+  pullRequestSnapshot PullRequestSnapshot?
+  stackedTaskId       String?
+  stackedTask         Task?                @relation("StackedTask", fields: [stackedTaskId], references: [id], onDelete: SetNull)
+
+  @@index([taskId, sequence])
+  @@index([taskId, role, sequence])
+  @@index([llmModel, createdAt])
+}
+
+model TaskSession {
+  id           String    @id @default(cuid())
+  podName      String?
+  podNamespace String?
+  isActive     Boolean   @default(true)
+  connectionId String?
+  createdAt    DateTime  @default(now())
+  endedAt      DateTime?
+  taskId       String
+  task         Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, isActive])
+}
+
+model CodebaseUnderstanding {
+  id           String   @id @default(nanoid())
+  repoFullName String   @unique
+  repoUrl      String
+  content      Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks  Task[]
+
+  @@index([repoFullName])
+}
+
+model Memory {
+  id       String         @id @default(cuid())
+  content  String
+  category MemoryCategory
+
+  // Repository-specific memories only
+  repoFullName String
+  repoUrl      String
+
+  // User and task context
+  userId String
+  taskId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([userId, repoFullName])
+  @@index([taskId])
+  @@index([category])
+}
+
+model PullRequestSnapshot {
+  id String @id @default(cuid())
+
+  status      PullRequestStatus
+  title       String
+  description String
+
+  filesChanged Int
+  linesAdded   Int
+  linesRemoved Int
+  commitSha    String
+
+  createdAt DateTime @default(now())
+
+  messageId String      @unique
+  message   ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@map("pull_request_snapshot")
+}
+
+enum TaskStatus {
+  STOPPED
+  INITIALIZING
+  ARCHIVED
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum PullRequestStatus {
+  CREATED
+  UPDATED
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+enum TodoStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum InitStatus {
+  INACTIVE
+  PREPARE_WORKSPACE
+  CREATE_VM
+  WAIT_VM_READY
+  VERIFY_VM_WORKSPACE
+  START_BACKGROUND_SERVICES
+  INSTALL_DEPENDENCIES
+  COMPLETE_SHADOW_WIKI
+  ACTIVE
+}
+
+model UserSettings {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  memoriesEnabled  Boolean  @default(true)
+  autoPullRequest  Boolean  @default(false)
+  enableShadowWiki Boolean  @default(true)
+  enableIndexing   Boolean  @default(false)
+  selectedModels   String[] @default([])
+  rules            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+enum MemoryCategory {
+  INFRA
+  SETUP
+  STYLES
+  ARCHITECTURE
+  TESTING
+  PATTERNS
+  BUGS
+  PERFORMANCE
+  CONFIG
+  GENERAL
+}

@@ -1,0 +1,51 @@
+# Dependencies
+node_modules
+
+# Local env files
+.env
+.env.*
+!.env.template
+
+# Turbo
+.turbo
+
+# Vercel
+.vercel
+
+# Build Outputs
+.next/
+out/
+build
+dist
+dist_temp
+
+# Debug
+npm-debug.log*
+
+# Misc
+.DS_Store
+*.pem
+
+# Prompt research stuff (Ishaan)
+prompts-research/
+
+# Python virtual environments
+.venv/
+
+test-workspace/
+shadow-worktree/*
+
+# Indexing stuff (Rajan)
+.shadow/
+bun.lock
+
+internal/
+
+scripts/logs/
+# Deployment files
+.env.production
+.env.vercel
+.env.railway
+.railway-url
+.vercel
+*.log

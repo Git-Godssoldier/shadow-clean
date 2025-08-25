@@ -1,0 +1,99 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "tui",
+  "globalEnv": ["NODE_ENV", "DATABASE_URL", "DIRECT_URL"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "env": [
+        "BETTER_AUTH_SECRET",
+        "GITHUB_CLIENT_ID",
+        "GITHUB_CLIENT_SECRET",
+        "GITHUB_WEBHOOK_SECRET",
+        "GITHUB_APP_ID",
+        "GITHUB_APP_SLUG",
+        "GITHUB_PRIVATE_KEY",
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "PINECONE_API_KEY",
+        "PINECONE_INDEX_NAME",
+        "CLIENT_URL",
+        "API_URL",
+        "API_PORT",
+        "AGENT_MODE",
+        "WORKSPACE_DIR",
+        "MAX_REPO_SIZE_MB",
+        "CONCURRENCY",
+        "MODEL",
+        "MODEL_MINI",
+        "USE_PINECONE",
+        "EMBEDDING_MODEL",
+        "VM_*",
+        "K8S_*",
+        "KUBERNETES_*",
+        "HEALTH_CHECK_*",
+        "MAX_*"
+      ],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**", "generated/**"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "check-types": {
+      "dependsOn": ["^check-types"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "env": [
+        "BETTER_AUTH_SECRET",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "GITHUB_TOKEN", 
+        "GITHUB_CLIENT_ID",
+        "GITHUB_CLIENT_SECRET",
+        "GITHUB_WEBHOOK_SECRET",
+        "GITHUB_APP_ID",
+        "GITHUB_APP_SLUG",
+        "GITHUB_PRIVATE_KEY",
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "PINECONE_API_KEY",
+        "CLIENT_URL",
+        "API_URL",
+        "API_PORT",
+        "AGENT_MODE",
+        "WORKSPACE_DIR",
+        "DEBUG"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env.development.local",
+        ".env.local",
+        ".env.development",
+        ".env"
+      ]
+    },
+    "db:migrate:dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "db:migrate:deploy": {
+      "cache": false
+    },
+    "db:push": {
+      "cache": false
+    },
+    "db:push:reset": {
+      "cache": false
+    },
+    "db:studio": {
+      "cache": false
+    },
+    "generate": {
+      "dependsOn": ["^generate"],
+      "cache": false,
+      "env": ["DATABASE_URL", "DIRECT_URL"]
+    }
+  }
+}

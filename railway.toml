@@ -1,0 +1,16 @@
+[build]
+builder = "dockerfile"
+buildCommand = ""
+
+[deploy]
+startCommand = "node apps/server/dist/server.js"
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+
+[[services]]
+name = "shadow-backend"
+root = "/"
+
+  [services.env]
+  NODE_ENV = "production"
+  AGENT_MODE = "local"

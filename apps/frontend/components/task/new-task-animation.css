@@ -1,0 +1,32 @@
+.new-task-animation {
+  background: radial-gradient(
+    circle at 50% 0%,
+    var(--background) 0%,
+    var(--background) 35%,
+    var(--vesper-orange) 55%,
+    var(--vesper-teal) 75%
+  );
+  filter: blur(150px);
+
+  opacity: 0;
+  transform-origin: top;
+
+  animation: new-task-animation 1.5s var(--ease-out-expo) forwards;
+}
+
+@keyframes new-task-animation {
+  0% {
+    transform: scale(1);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.1;
+  }
+  75% {
+    opacity: 0;
+  }
+  100% {
+    transform: scaleX(0.5) scaleY(0.1);
+    opacity: 0;
+  }
+}
