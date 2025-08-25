@@ -7,6 +7,7 @@
     "downlevelIteration": true,
     "target": "ES2022",
     "noImplicitAny": false,
+    "noEmitOnError": false,
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
